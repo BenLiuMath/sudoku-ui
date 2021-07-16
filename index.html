@@ -1,0 +1,1366 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<style>
+
+button { user-select: none; }
+#board { position:absolute; top:50px; left:50px; user-select: none; }
+
+.pencilmark { color:rgb(0,128,255); user-select: none; }
+.finalmark { color:black; user-select: none; }
+
+.sudokuCell { position:relative; border:1px solid white; display:inline-block; height:60px; width:60px; margin:0px; padding:0px; }
+
+.cellbackground { position:absolute; top:0px; left:0px; width:100%; height:100%; }
+.cellbackground div { position:absolute; top:0px; left:0px; width:100%; height:100%; }
+.color0 { background:none; }
+.color1 { background:rgba(255,75,75,.5); }
+.color2 { background:rgba(255,150,0,.5); }
+.color3 { background:rgba(255,225,0,.5); }
+.color4 { background:rgba(150,225,50,.5); }
+.color5 { background:rgba(50,225,100,.5); }
+.color6 { background:rgba(64,192,255,.5); }
+.color7 { background:rgba(125,75,255,.5); }
+.color8 { background:rgba(225,50,255,.5); }
+.color9 { background:rgba(200,200,200,.5); }
+
+.selectindicator-off { position:relative; top:0px; left:0px; width:100%; height:100%; background:none; }
+.selectindicator-on { position:relative; top:0px; left:0px; width:100%; height:100%; background:rgba(255,255,0,.5); }
+
+.cellhighlight-off { position:absolute; top:0px; left:0px; width:100%; height:100%; background:none; }
+.cellhighlight-on { position:absolute; top:0px; left:0px; width:100%; height:100%; background:rgba(0,127,255,.5); }
+
+
+.sudokuboardtable { border:none; border-collapse:collapse; display:inline-block; }
+.sudokuboardtable td {border:3px solid black; padding:0px; }
+
+.sudokuboardtable table td,th { position:relative; border:1px solid black; width:60px; height:60px; text-align:center; }
+.sudokuboardtable table { border-style:hidden; border-collapse: collapse; }
+
+.cellvalue { position:absolute; top:7%; left:0%; width:100%; font-size:32pt; font-family: tahoma, verdana, sans-serif; text-align:center; }
+
+.cornermarks { position:absolute; top:0; left:0; width:100%; height:100%; }
+.cornermarks span { position:absolute; width:20%; height:30%; font-family: tahoma, verdana, sans-serif; font-size:10pt; text-align:center; }
+.pm-ul { top:0%; left:5%; }
+.pm-uc { top:0%; left:40%; }
+.pm-ur { top:0%; left:75%; }
+.pm-ml { top:35%; left:5%; }
+.pm-mr { top:35%; left:75%; }
+.pm-dl { top:70%; left:5%; }
+.pm-dc { top:70%; left:40%; }
+.pm-dr { top:70%; left:75%; }
+
+.centermarks { position:absolute; top:35%; left:0%; width:100%; font-size:11pt; text-align:center; font-family: tahoma, verdana, sans-serif; }
+
+#boardcontainer { float:left; }
+#controlscontainer { text-align:center; background:none; width:100%; vertical-align:middle; }
+#controls { display:inline-block; }
+#controls table { border:none; border-collapse:collapse; width:100%; background:none; }
+#controls td { padding:0px; margin:none; border:none; height:50px; }
+#controls button { background:rgb(225,225,225); border:1px solid black; width:100%; height:100%; border-radius:5px; font-family: tahoma, verdana, sans-serif; text-align:center; font-size:16pt; }
+#controls button:active { background:rgb(225,150,255); }
+
+#keypad { height:100%; border:none; border-collapse:collapse; }
+#keypad button { font-size:18pt; }
+#keypad td { width:50px; height:50px; }
+
+#controls .button-active { background:rgb(175,100,200); }
+
+#controls .color1 { background:rgba(255,75,75,.5); }
+#controls .color2 { background:rgba(255,150,0,.5); }
+#controls .color3 { background:rgba(255,225,0,.5); }
+#controls .color4 { background:rgba(150,225,50,.5); }
+#controls .color5 { background:rgba(50,225,100,.5); }
+#controls .color6 { background:rgba(64,192,255,.5); }
+#controls .color7 { background:rgba(125,75,255,.5); }
+#controls .color8 { background:rgba(225,50,255,.5); }
+#controls .color9 { background:rgba(200,200,200,.5); }
+
+
+
+
+
+#controlsContainer {
+	width:100%;
+}
+#controlsContainer button {
+	width:100%;
+	height:100%;
+	min-height:40px;
+	min-width:40px;
+	font-size:120%;
+}
+#controlsContainer table {
+	width:100%;
+	margin:0px;
+	border-collapse:collapse;
+}
+#controlsContainer td {
+	padding:0px;
+	border: 0px solid transparent;
+	background-clip: padding-box;
+}
+#controlsContainer tr > td + td {
+	border-left-width: .25em;
+}
+#controlsContainer tr + tr > td {
+	border-top-width: .25em;
+}
+fieldset {
+	box-sizing: border-box;
+	width:100%;
+    margin:0px 0px 2px 0px;
+    border: 1px solid black;
+    padding:0px .5em .5em .5em;
+    border-radius: .25em;
+	background:#f0f0f0;
+}
+fieldset div + div {
+	border:0px solid transparent;
+	border-top-width:.25em;
+}
+
+.row {
+	display: flex;
+	justify-content: space-around;
+}
+.row span {
+	border:0px solid transparent;
+	display:block;
+	width:100%;
+}
+.row span+span {
+	border-left-width:.25em;
+}
+.row span textarea {
+	width:100%;
+}
+legend {
+    padding: 1px;
+	font-size:80%;
+	font-family: tahoma, verdana, sans-serif;
+	text-align:left;
+}
+#inputoutput button { font-size:100%; min-height:30px; }
+
+</style>
+<script>
+
+function rowScan(rowNum,cellNum) { return [rowNum,cellNum]; }
+function colScan(colNum,cellNum) { return [cellNum,colNum]; }
+function blockScan(blockNum,cellNum) {
+	var iter_rownum = Math.floor((cellNum-1)/3);
+	var iter_colnum = (cellNum-1)%3;
+	
+	var house_rownum = Math.floor((blockNum-1)/3);
+	var house_colnum = (blockNum-1)%3;
+	
+	var rownum = 3*house_rownum + iter_rownum
+	var colnum = 3*house_colnum + iter_colnum
+	return [rownum+1,colnum+1];
+}
+function getBlock(row,col) {
+	var blockrow = Math.floor((row-1)/3);
+	var blockcol = Math.floor((col-1)/3);
+	var blocknum = blockrow*3+blockcol+1;
+	//console.log(blockrow+":"+blockcol+" "+blocknum);
+	return blocknum;
+}
+
+function SudokuBoard() {
+
+var myself = this;
+
+// Board elements
+var myboard = document.getElementById("boardtable");
+
+// Control elements
+var controlsDiv = document.getElementById("controls");
+var markmode_normal_button = document.getElementById("markmode_normal");
+var markmode_corner_button = document.getElementById("markmode_corner");
+var markmode_center_button = document.getElementById("markmode_center");
+var markmode_colors_button = document.getElementById("markmode_colors");
+var inputmode_button = document.getElementById("inputmode");
+var rapidinput_button = document.getElementById("rapidinput");
+var markmode_buttons = [markmode_normal_button,markmode_corner_button,markmode_center_button,markmode_colors_button,inputmode_button,rapidinput_button];
+var delete_button = document.getElementById("delete_button");
+var undo_button = document.getElementById("undo");
+var redo_button = document.getElementById("redo");
+var check_button = document.getElementById("check");
+var highlightmode_none_button = document.getElementById("highlightmode_none");
+var highlightmode_values_button = document.getElementById("highlightmode_values");
+var highlightmode_pencilmarks_button = document.getElementById("highlightmode_pencilmarks");
+var highlightmode_buttons = [highlightmode_none_button,highlightmode_values_button,highlightmode_pencilmarks_button];
+var restart_button = document.getElementById("restart");
+var autoclear_button = document.getElementById("autoclear");
+
+var erasecorners_button = document.getElementById("erase_corners");
+var erasecenters_button = document.getElementById("erase_centers");
+var erasecolors_button = document.getElementById("erase_colors");
+
+var input_output_textarea = document.getElementById("input_output");
+var outdump_button = document.getElementById("outdump");
+var outputToASCII = document.getElementById("outputToASCII");
+var inputFromASCII = document.getElementById("inputFromASCII");
+var loaddump_button = document.getElementById("loaddump");
+
+// Controls
+var selectedCells = new Array();
+var cursorLocation = [];
+var selectMode = "single";
+var highlightedCells = new Array();
+var highlightMode = "values";
+var pencilMarkClearing = false;
+
+var sudokuCells = new Array();
+for(var jj=0; jj<9; jj++) { sudokuCells[jj] = new Array(); }
+SetUp();
+
+var prevMarkMode = "normal";
+var modeButtonDepressed = false;
+var markMode;
+setMarkMode('normal');
+setHighlightMode('none');
+
+function setMarkMode(pmode) {
+	markmode_buttons.forEach((e) => e.className="");
+	switch(pmode) {
+		case "input":
+			markMode="input";
+			inputmode_button.className = "button-active";
+		break;
+		case "normal":
+			markMode="normal";
+			markmode_normal_button.className = "button-active";
+		break;
+		case "corner":
+			markMode="corner";
+			markmode_corner_button.className = "button-active";
+		break;
+		case "center":
+			markMode="center";
+			markmode_center_button.className = "button-active";
+		break;
+		case "colors":
+			markMode="colors";
+			markmode_colors_button.className = "button-active";
+		break;
+		case "rapidinput":
+			markMode="rapidinput";
+			rapidinput_button.className = "button-active";
+		break;
+	}
+	if(pmode=="colors") {
+		for(var jj=1; jj<=9; jj++) {
+			var digit_button = document.getElementById("keypad_"+jj);
+			digit_button.className="color"+jj;
+		}
+	} else {
+		for(var jj=1; jj<=9; jj++) {
+			var digit_button = document.getElementById("keypad_"+jj);
+			digit_button.className="";
+		}
+	}
+}
+function setHighlightMode(pmode) {
+	highlightmode_buttons.forEach((e) => e.className="");
+	switch(pmode) {
+		case "none":
+			highlightMode="none";
+			highlightmode_none_button.className = "button-active";
+		break;
+		case "values":
+			highlightMode="values";
+			highlightmode_values_button.className = "button-active";
+		break;
+		case "pencilmarks":
+			highlightMode="pencilmarks";
+			highlightmode_pencilmarks_button.className = "button-active";
+		break;
+	}
+	HighlightCells();
+}
+
+// Inputs
+myboard.addEventListener('select',function(e) { e.preventDefault(); this.blur(); });
+
+// mark modes
+markmode_normal_button.addEventListener('click',function(e) { this.blur(); setMarkMode("normal"); } );
+markmode_corner_button.addEventListener('click',function(e) { this.blur(); setMarkMode("corner"); } );
+markmode_center_button.addEventListener('click',function(e) { this.blur(); setMarkMode("center"); } );
+markmode_colors_button.addEventListener('click',function(e) { this.blur(); setMarkMode("colors"); } );
+inputmode_button.addEventListener('click',function() {this.blur();  setMarkMode("input");} );
+
+undo_button.addEventListener('click',function(e) { this.blur(); undo(); } );
+redo_button.addEventListener('click',function(e) { this.blur(); redo(); } );
+delete_button.addEventListener('click',function(e) { e.preventDefault(); DeleteMark(markMode,e); });
+check_button.addEventListener('click',function(e) { e.preventDefault(); CheckSolve(); });
+rapidinput_button.addEventListener('click',function(e) { e.preventDefault(); startRapidInput(); });
+
+// highlight mode buttons
+highlightmode_none_button.addEventListener('click',function(e) { this.blur(); setHighlightMode("none"); });
+highlightmode_values_button.addEventListener('click',function(e) { this.blur(); setHighlightMode("values"); });
+highlightmode_pencilmarks_button.addEventListener('click',function(e) { this.blur(); setHighlightMode("pencilmarks"); });
+
+restart_button.addEventListener('click',function(e) { this.blur(); if(confirm("Restart?")){ClearBoardMarks('restart');} });
+
+erasecorners_button.addEventListener('click',function(e) { this.blur(); ClearBoardMarks('corner'); });
+erasecenters_button.addEventListener('click',function(e) { this.blur(); ClearBoardMarks('center'); });
+erasecolors_button.addEventListener('click',function(e) { this.blur(); ClearBoardMarks('colors'); });
+
+autoclear_button.addEventListener('click',function(e) { this.blur(); toggleClearMarkMode(); });
+input_output_textarea.addEventListener('keydown',function(e) { e.stopPropagation(); });
+
+// dump output and load
+outdump_button.addEventListener('click',function(e) { e.preventDefault(); this.blur(); DumpState(); });
+outputToASCII.addEventListener('click',function(e) {
+e.preventDefault();
+this.blur(); 
+input_output_textarea.value = outputPuzzleToASCII();
+});
+inputFromASCII.addEventListener('click',function(e) {
+	this.blur();
+	e.preventDefault();
+	var dump = input_output_textarea.value;
+	if(confirm("Load?")) {
+		myself.inputPuzzleFromASCII(dump);
+	}
+});
+loaddump_button.addEventListener('click',function(e) {
+	this.blur();
+	e.preventDefault();
+	var dump = input_output_textarea.value;
+	try {
+		dump = JSON.parse(dump);
+	} catch (e) {
+		return false;
+	}
+	if(confirm("Load?")) {
+		LoadState(dump);
+	}
+});
+
+//autoclear_button
+function toggleClearMarkMode() {
+	if(pencilMarkClearing) { // turn off
+		pencilMarkClearing = false;
+		autoclear_button.className="";
+	} else { // turn on
+		pencilMarkClearing = true;
+		autoclear_button.className="button-active";
+	}
+}
+// digit buttons
+for(var jj=1; jj<=9; jj++) {
+	var digit_button = document.getElementById("keypad_"+jj);
+	function makepresshandler(digit) {
+		var f = function(ev) {
+			this.blur();
+			PressDigit(digit,markMode,ev);
+		}
+		return f;
+	}
+	digit_button.addEventListener('click',makepresshandler(jj));
+}
+
+function ClearBoardMarks(ptype) {
+	console.log(ptype);
+	
+	function scanAll(f) {
+		for(var row=1; row<=9; row++) {
+			for(var col=1; col<=9; col++) {
+				var mycell = sudokuCells[row-1][col-1];
+				f(mycell);
+			}
+		}
+	}
+	
+	switch(ptype){
+		case 'restart':
+			var f = function(cell) {
+				cell.DeleteAllMarks();
+			}
+			scanAll(f);
+			clearHistory();
+		break;
+		case 'corner':
+		case 'center':
+			var histEntry = [];
+			var f = function(cell) {
+				var removedMarks = cell.DeletePencilMarks(ptype);
+				if(removedMarks.length>0) {
+					removedMarks = removedMarks.map( (mark) => [cell.rownum,cell.colnum,ptype,mark,mark]);
+					histEntry = histEntry.concat(removedMarks);
+				}
+			}
+			scanAll(f);
+			enterHistory(histEntry);
+		break;
+		case 'colors':
+			var histEntry = [];
+			var f = function(cell) {
+				var removedMark = cell.DeletePencilMarks(ptype);
+				if(removedMark>0) {
+					histEntry.push([cell.rownum,cell.colnum,ptype,0,removedMark]);
+				}
+			}
+			scanAll(f);
+			enterHistory(histEntry);
+		break;
+	}
+}
+
+//var history = [[1,1,'normal',1,0],[1,2,'corner',2,2],[1,2,'corner',3,3],[1,1,'normal',3,1],[1,3,'colors',1,0],[1,3,'corner',2,2],[1,3,'corner',3,3],[1,3,'colors',2,1]];
+//var history = [ [1,1,'normal',1,0],[1,2,'normal',2,0],[1,3,'normal',3,0] ];
+//var history = [[1,2,'input',5,0],[1,4,'input',6,0],[1,6,'input',3,0],[2,2,'input',8,0],[2,7,'input',9,0],[2,8,'input',4,0]];
+
+/*
+var history = [
+[[1,1,'normal',1,0]],
+[[1,2,'corner',2,2],[1,3,'corner',2,2]],
+[[1,2,'corner',3,3],[1,3,'corner',3,3]],
+[[1,1,'normal',3,1]],
+[[1,3,'colors',1,0]],
+[[1,3,'colors',2,1]]
+];
+*/
+var history = [];
+var historyIndex = history.length-1;
+
+function runHistory() {
+	for(var jj=0; jj<history.length; jj++) {
+		var entry = history[jj];
+		for(var kk=0; kk<entry.length; kk++) {
+			var action = entry[kk];
+			PencilMark(action[0],action[1],action[2],action[3],false);
+		}
+	}
+}
+runHistory();
+
+
+function DumpState() {
+	var dump = [];
+	for(var kk=0; kk<9; kk++) {
+		var tmp = [];
+		for(var jj=0; jj<9; jj++) {
+			tmp.push(sudokuCells[kk][jj].DumpState());
+		}
+		dump.push(tmp);
+	}
+	input_output_textarea.value = JSON.stringify(dump);
+}
+//DumpState();
+
+function LoadState(dump) {
+	for(var kk=0; kk<9; kk++) {
+		for(var jj=0; jj<9; jj++) {
+			sudokuCells[kk][jj].LoadState(dump[kk][jj]);
+		}
+	}
+}
+this.inputPuzzleFromASCII = function(dump) {
+
+
+	if(dump.charAt(0)=="{" && dump.charAt(dump.length-1)=="}") {
+		dump = dump.substring(1,dump.length-1);
+		dump = dump.split(",");
+		if(dump.length!=9) {
+			return; // invalid!
+		}
+		console.log(dump);
+		for(var digit=1; digit<=9; digit++) {
+			var chunk = dump[digit-1];
+			chunk = chunk.split("");
+			for(var jj=0; jj<chunk.length; jj+=2) {
+				var row = chunk[jj];
+				var col = chunk[jj+1];
+				console.log(row+":"+col);
+				sudokuCells[row-1][col-1].SetFinalValue(digit);
+			}
+		}	
+	}
+}
+function outputPuzzleToASCII() {
+	var puzzleDigits = [];
+	for(var jj=0; jj<9; jj++) {
+		puzzleDigits.push([]);
+	}
+	for(var row=1; row<=9; row++) {
+		for(var col=1; col<=9; col++) {
+			var myCell = sudokuCells[row-1][col-1];
+			var digit = myCell.GetValue();
+			if(digit > 0 && myCell.isFinalized()) {
+				puzzleDigits[digit-1].push([row,col]);
+			}
+		}
+	}
+	//console.log(JSON.stringify(puzzleDigits));
+	var outString = puzzleDigits.map( (digit) => digit.map( (ent) => ent[0]+""+ent[1] ).join("") ).join(",");
+	//console.log(outString);
+	outString = "{"+outString+"}";
+	
+	return outString;
+}
+
+
+//LoadState();
+function enterHistory(histEntry) {
+	if(historyIndex<history.length-1) { // undo has been previously invoked, we're back in time. erase future.
+		history = history.slice(0,historyIndex+1);
+	}
+	history.push(histEntry);
+	historyIndex++;
+}
+function undo() {
+	if(historyIndex>=0) {
+		var entry = history[historyIndex];
+		//console.log('undo entry');
+		//console.log(entry);
+		for(var kk=0; kk<entry.length; kk++) {
+			var action = entry[kk];
+			PencilMark(action[0],action[1],action[2],action[4],false);
+		}		
+		historyIndex--;
+	}
+}
+function redo() {
+	if(historyIndex<history.length-1) {
+		var entry = history[historyIndex+1];
+		for(var kk=0; kk<entry.length; kk++) {
+			var action = entry[kk];
+			PencilMark(action[0],action[1],action[2],action[3],false);
+		}
+		historyIndex++;
+		//console.log("length: "+history.length+"; position:"+historyIndex);
+	}
+}
+function clearHistory() {
+	history=[];
+	historyIndex = history.length-1;
+}
+function PencilMark(row,col,type,num,doHistory) {
+	var mycell = sudokuCells[row-1][col-1];
+	var oldnum = num;
+	var markClearingHistoryEntry = [];
+	switch(type) {
+		case 'normal':
+			oldnum = mycell.GetValue();
+			mycell.SetValue(num);
+			if(pencilMarkClearing && doHistory) { // Auto-clearing of marks
+				for(var rowscan=1; rowscan<=9; rowscan++) { // scan the column (vary rows)
+					var removedCornerMark = sudokuCells[rowscan-1][col-1].clearCornerMark(num);
+					if(removedCornerMark) { markClearingHistoryEntry.push([rowscan,col,'corner',num,num]); }
+					var removedCenterMark = sudokuCells[rowscan-1][col-1].clearCenterMark(num);
+					if(removedCenterMark) { markClearingHistoryEntry.push([rowscan,col,'center',num,num]); }
+				}
+				for(var colscan=1; colscan<=9; colscan++) { // scan the row (vary columns)
+					//sudokuCells[row-1][colscan-1].clearPencilMarks(num);
+					
+					var removedCornerMark = sudokuCells[row-1][colscan-1].clearCornerMark(num);
+					if(removedCornerMark) { markClearingHistoryEntry.push([row,colscan,'corner',num,num]); }
+					var removedCenterMark = sudokuCells[row-1][colscan-1].clearCenterMark(num);
+					if(removedCenterMark) { markClearingHistoryEntry.push([row,colscan,'center',num,num]); }
+				}
+				var blockNum = getBlock(row,col);
+				for(var cellInBlock=1; cellInBlock<=9; cellInBlock++) {
+					var mycellinds = blockScan(blockNum,cellInBlock);
+					var rowscan = mycellinds[0];
+					var colscan = mycellinds[1];
+					var mycell = sudokuCells[rowscan-1][colscan-1];
+					//console.log(mycell.rownum+":"+mycell.colnum);
+					//mycell.clearPencilMarks(num);
+					
+					var removedCornerMark = sudokuCells[rowscan-1][colscan-1].clearCornerMark(num);
+					if(removedCornerMark) { markClearingHistoryEntry.push([rowscan,colscan,'corner',num,num]); }
+					var removedCenterMark = sudokuCells[rowscan-1][colscan-1].clearCenterMark(num);
+					if(removedCenterMark) { markClearingHistoryEntry.push([rowscan,colscan,'center',num,num]); }
+				}
+				//console.log(markClearingHistoryEntry);
+			}
+		break;
+		case 'corner':
+			mycell.CornerMark(num);
+		break;
+		case 'center':
+			mycell.CenterMark(num);
+		break;
+		case 'colors':
+			oldnum = mycell.GetColor();
+			mycell.ColorsMark(num);
+		break;
+		case 'input':
+			oldnum = mycell.GetValue();
+			mycell.SetFinalValue(num);
+		break;
+		default:
+			return;
+		break;
+	}
+	HighlightCells();
+	if(doHistory) {
+		var histEntry = [[row,col,type,num,oldnum]];
+		if(markClearingHistoryEntry.length>0) {
+			histEntry = histEntry.concat(markClearingHistoryEntry);
+		}
+		
+		if(historyIndex<history.length-1) {
+			history = history.slice(0,historyIndex+1);
+		}
+		//console.log(histEntry);
+		history.push(histEntry);
+		historyIndex++;
+		//console.log("length: "+history.length+"; position:"+historyIndex);
+	}
+}
+function DeleteMark(mode,ev) {
+	if(mode=="normal") {
+		//selectedCells.forEach((elem) => elem.SetValue(0));
+		selectedCells.forEach( (elem) => PencilMark(elem.rownum, elem.colnum, mode, 0, elem.GetValue()) );
+	} else if(mode=="input") {
+		selectedCells.forEach((elem) => elem.SetFinalValue(0));
+	} else if(mode=="corner" || mode=="center") {
+		var cellsCornerDeletions = selectedCells.map( (cell) => cell.DeleteCornerMarks().map( (mark) => [cell.rownum,cell.colnum,'corner',mark,mark]) );
+		cellsCornerDeletions = [].concat.apply([],cellsCornerDeletions);
+		
+		var cellsCenterDeletions = selectedCells.map( (cell) => cell.DeleteCenterMarks().map( (mark) => [cell.rownum,cell.colnum,'center',mark,mark]) );
+		cellsCenterDeletions = [].concat.apply([],cellsCenterDeletions);
+		
+		var histEntry = cellsCornerDeletions.concat(cellsCenterDeletions);
+		
+		//var histEntry = [].concat.apply([],cellsCornerDeletions); // need to flatten array of arrays
+		//histEntry = histEntry.concat.apply([],cellsCenterDeletions);
+		if(historyIndex<history.length-1) {
+			history = history.slice(0,historyIndex+1);
+		}
+		console.log(histEntry);
+		console.log(JSON.stringify(histEntry));
+		history.push(histEntry);
+		historyIndex++;
+		
+	} else if(mode=="colors") {
+		//selectedCells.forEach((elem) => elem.ColorsMark(0));
+		selectedCells.forEach( (elem) => { PencilMark(elem.rownum,elem.colnum,mode,0,elem.GetColor()) } );
+	}
+}
+
+function CheckSolve() {
+	var bigMarks = new Array();
+	for(var kk=0; kk<9; kk++) {
+		bigMarks[kk] = new Array();
+		for(var jj=0; jj<9; jj++) {
+			bigMarks[kk][jj] = sudokuCells[kk][jj].GetValue();
+		}
+	}
+	
+	var problemCells = new Array();
+	for(var jj=0; jj<9; jj++) {
+		problemCells.push([false,false,false,false,false,false,false,false,false]);
+		//problemCells.push([0,0,0,0,0,0,0,0,0]);
+	}
+	// scan rows
+	
+	var celliterfun;
+	celliterfun = blockScan;
+	celliterfun = rowScan;
+	
+	function HouseScan(celliterfun) {
+		for(var kk=1; kk<=9; kk++) {
+			// Make array to keep track of seen digits in this house
+			var markTotal = 0;
+			var markTally = new Array(1); // first element is dummy
+			for(var ii=1; ii<=9; ii++) {
+				markTally.push([false,[0,0]]); // [whether this digit has been detected, and cell # where it was detected]
+			}
+			
+			// Scan cells in house
+			for(var jj=1; jj<=9; jj++) {
+				var coords = celliterfun(kk,jj);
+				var rownum = coords[0]; var colnum = coords[1];
+				var val = bigMarks[rownum-1][colnum-1];
+				//console.log(coords+":"+val);
+				if(1 <= val && val <= 9) { // Valid mark
+					if(markTally[val][0]) { // Problem! this digit has already been seen
+						//console.log('double!');
+						var rownum_prevconflict = markTally[val][1][0];
+						var colnum_prevconflict = markTally[val][1][1];
+						//console.log('prev coords:'+markTally[val][1]);
+						problemCells[rownum_prevconflict-1][colnum_prevconflict-1] = 1;
+						problemCells[rownum-1][colnum-1] = true;
+						//console.log(problemCells);
+					} else { // good mark!
+						markTotal += val;
+						markTally[val] = [true,[rownum,colnum]];
+					}
+				} else { // out of bounds digit
+					//console.log('out of bounds!');
+					problemCells[rownum-1][colnum-1] = true;
+				}
+			}
+		}
+	}
+	HouseScan(rowScan);
+	HouseScan(colScan);
+	HouseScan(blockScan);
+	
+	//console.log(problemCells);
+	var anyProblems = false;
+	for(var kk=1; kk<=9; kk++) {
+		for(var jj=1; jj<=9; jj++) {
+			if(problemCells[kk-1][jj-1]) {
+				anyProblems = true;
+				PencilMark(kk,jj,'colors',1,true);
+			}
+		}
+	}
+	if(!anyProblems) {
+		alert('Looks good!');
+	}
+}
+
+function startRapidInput() {
+	if(selectedCells.length==0) {
+		alert('Must select cells before using rapid input mode!');
+		return;
+	}
+	setMarkMode('rapidinput');
+	selectedCells.sort( function(a,b) {
+		var a_ind = 9*(a.rownum)+a.colnum;
+		var b_ind = 9*(b.rownum)+b.colnum;
+		return a_ind-b_ind;
+	});
+	selectedCells[0].Highlight();
+}
+
+// Keyboard Handler
+function PressDigit(digit,mode) {
+	//console.log("mark mode:"+markMode);
+		
+	if(mode=='input') {
+		//selectedCells.forEach((e) => e.SetFinalValue(digit));
+		selectedCells.forEach((e) => PencilMark(e.rownum,e.colnum,'input',digit,true));
+	}
+	if(mode=='normal') {
+		//selectedCells.forEach((e) => e.SetValue(digit));
+		selectedCells.forEach((e) => PencilMark(e.rownum,e.colnum,'normal',digit,true));
+	}
+	if(mode=='corner') {
+		//selectedCells.forEach((e) => e.CornerMark(digit));
+		selectedCells.forEach((e) => PencilMark(e.rownum,e.colnum,'corner',digit,false));
+		
+		var histEntry = selectedCells.map( (cell) => [cell.rownum,cell.colnum,'corner',digit,digit]);
+		//console.log(histEntry);
+		if(historyIndex<history.length-1) {
+			history = history.slice(0,historyIndex+1);
+		}
+		history.push(histEntry);
+		historyIndex++;
+	}
+	if(mode=='center') {
+		//selectedCells.forEach((e) => e.CenterMark(digit));
+		selectedCells.forEach((e) => PencilMark(e.rownum,e.colnum,'center',digit,false));
+		
+		var histEntry = selectedCells.map( (cell) => [cell.rownum,cell.colnum,'center',digit,digit]);
+		if(historyIndex<history.length-1) {
+			history = history.slice(0,historyIndex+1);
+		}
+		history.push(histEntry);
+		historyIndex++;
+	}
+	if(mode=='colors') {
+		//selectedCells.forEach((e) => e.ColorsMark(digit));
+		selectedCells.forEach((e) => PencilMark(e.rownum,e.colnum,'colors',digit,true));
+	}
+	if(mode=='rapidinput') {
+		var firstone = selectedCells.shift();
+		PencilMark(firstone.rownum,firstone.colnum,'input',digit,true);
+		firstone.Deselect();
+		firstone.Dehighlight();
+		if(selectedCells.length==0) {
+			setMarkMode('normal');
+		} else {
+			selectedCells[0].Highlight();
+		}
+	}
+}
+
+
+var shiftDigits = "!@#$%^&*(";
+function KeyDownHandler(e) {
+	var mykey = e.key;
+	var intParsedKey = parseInt(mykey);
+	var shiftDigitInd = shiftDigits.indexOf(mykey);
+	var digitPress = (1<=intParsedKey && intParsedKey<=9)
+	var shiftDigitPress = shiftDigitInd>-1;
+	
+	if(e.ctrlKey) {
+		e.preventDefault();
+	}
+	if(e.key == "Control") {
+		modeButtonDepressed = true;
+		prevMarkMode = markMode;
+		setMarkMode('corner');
+	}
+	if(e.key == "Shift") {
+		modeButtonDepressed = true;
+		prevMarkMode = markMode;
+		setMarkMode('center');
+	}
+	
+	//console.log("(key down) button status: "+modeButtonDepressed);
+		
+	if(digitPress) { // Digit
+		PressDigit(intParsedKey,markMode);
+	} else if(shiftDigitPress) {
+		PressDigit(shiftDigitInd+1,markMode);
+	}
+	
+	// Spacebar
+	if(mykey==" ") { // Swap mark types
+		e.preventDefault();
+		if(markMode=="normal") {
+			setMarkMode("corner");
+		} else if(markMode=="corner") {
+			setMarkMode("center");
+		} else if(markMode=="center") {
+			setMarkMode("colors");
+		} else if(markMode=="colors") {
+			setMarkMode("normal");
+		} else if(markMode=="input") {
+			setMarkMode("normal");
+		}
+	}
+
+	// Arrows
+	if(e.key.substring(0,5)=="Arrow" && cursorLocation.length==2) {
+		e.preventDefault();
+		var currRow = cursorLocation[0];
+		var currCol = cursorLocation[1];
+		switch(e.key) {
+			case "ArrowUp":
+				if(currRow>1) currRow--;
+			break;
+			case "ArrowDown":
+				if(currRow<9) currRow++;
+			break;
+			case "ArrowLeft":
+				if(currCol>1) currCol--;
+			break;
+			case "ArrowRight":
+				if(currCol<9) currCol++;
+			break;
+		}
+		SelectCell(currRow,currCol,e.ctrlKey);
+	}
+	
+	// Backspace
+	if(e.keyCode==8 || e.keyCode==46) { DeleteMark(markMode,e); }
+}
+function KeyUpHandler(e) {
+	//console.log(e);
+	
+	if(e.ctrlKey || e.shiftKey) {
+	} else if(modeButtonDepressed) {
+		//console.log('bing '+prevMarkMode);
+		modeButtonDepressed = false;
+		setMarkMode(prevMarkMode);
+		prevMarkMode = "";
+	}
+	
+
+	//console.log("(key up) button status: "+modeButtonDepressed);
+	
+}
+
+document.body.addEventListener('keydown',KeyDownHandler);
+document.body.addEventListener('keyup',KeyUpHandler);
+myboard.addEventListener('mousedown',function(e) { e.stopPropagation(); });
+controlsDiv.addEventListener('mousedown',function(e) { e.stopPropagation(); });
+document.body.addEventListener('mousedown',function(e) { SelectCell(0,0,false); });
+
+
+function SelectCell(prow,pcol,multiMode) {
+	if(prow==0 && pcol==0) {
+		selectedCells.forEach(function(elem) { elem.Deselect(); });
+		selectedCells = [];
+		cursorLocation = [];
+		return;
+	}
+	//console.log("i was told:"+prow+":"+pcol);
+	cursorLocation = [prow, pcol];
+	var mycell = sudokuCells[prow-1][pcol-1];
+	//console.log("i found:"+mycell.rownum+":"+mycell.colnum);
+	var myind = selectedCells.indexOf(mycell);
+	if(myind>-1) { // this cell is already selected
+		//console.log('cell already selected. List is'+selectedCells.reduce((t,c) => t+"["+c.rownum+":"+c.colnum+"], ",""));
+		if(!multiMode) { // select only this cell
+			selectedCells.forEach(function(elem) { elem.Deselect(); });
+			selectedCells = [mycell];
+		} else {
+			//console.log('de-selecting single cell');
+			//selectedCells.splice(myind,1);
+			//mycell.Deselect();
+		}
+	} else {
+		if(multiMode) {
+			selectedCells.push(mycell);
+		} else {
+			selectedCells.forEach(function(elem) { elem.Deselect(); });
+			selectedCells = [mycell];
+		}
+	}
+	HighlightCells();
+}
+function HighlightCells() {
+
+	// find what values to select based on
+	var selectedValues = [false,false,false,false,false,false,false,false,false,false]; // 0 is dummy element
+	//var selectedVals = [];
+	selectedCells.forEach(function(elem) {
+		var myval = elem.GetValue();
+		if(myval>0) {
+			selectedValues[myval]=true;
+			//selectedVals.push(myval);
+		}
+		elem.Select();
+	});
+	//selectedVals.filter((v,i,a)=>a.indexOf(v)==i);
+	//console.log(selectedValues);
+	
+	highlightedCells.forEach(function(elem) { elem.Dehighlight(); });
+	highlightedCells = new Array();
+	
+	// highlight all cells with values in select-set
+	//console.log(highlightMode);
+	if(highlightMode=="values" || highlightMode=="pencilmarks") {
+		for(var row=1; row<=9; row++) {
+			for(var col=1; col<=9; col++) {
+				var mycell = sudokuCells[row-1][col-1];
+				var myval = mycell.GetValue();
+				if(myval>0 && selectedValues[myval]) {
+					highlightedCells.push(mycell);
+				}
+			}
+		}
+		highlightedCells.forEach(function(elem) { elem.Highlight(); });
+	}
+	// highlight all cells with pencil marks in the select set
+	if(highlightMode=="pencilmarks") {
+		for(var row=1; row<=9; row++) {
+			for(var col=1; col<=9; col++) {
+				var mycell = sudokuCells[row-1][col-1];
+				var myval = mycell.GetValue();
+				if(myval>0) { continue; } // skip this cell, it has a value
+				
+				var mymarks = mycell.GetAllMarks();
+				
+				// are any of the selected values in the marks?
+				for(var jj=0; jj<mymarks.length; jj++) {
+					if(selectedValues[mymarks[jj]]) {
+						highlightedCells.push(mycell);
+						break;
+					}
+				}
+			}
+		}
+		highlightedCells.forEach(function(elem) { elem.Highlight(); });
+	}
+}
+
+// Set up the board
+function SetUp() {
+	// Loop tr
+	for(var kk=0; kk<3; kk++) {
+		var myrow = new Array();
+		
+		var myblocktr = document.createElement("tr"); myboard.appendChild(myblocktr);
+		// Loop td
+		for(var jj=0; jj<3; jj++) {
+			var myblocktd = document.createElement("td"); myblocktr.appendChild(myblocktd);
+			
+			var blocktable = document.createElement("table"); myblocktd.appendChild(blocktable);
+			
+			for(var kkk=0; kkk<3; kkk++) {
+				var mycelltr = document.createElement("tr");
+				blocktable.appendChild(mycelltr);
+				for(var jjj=0; jjj<3; jjj++) {
+					var mycelltd = document.createElement("td");
+					mycelltr.appendChild(mycelltd);
+					
+					var rownum = 3*kk+kkk+1;
+					var colnum = 3*jj+jjj+1;
+					//console.log("making cell:"+rownum+":"+colnum);
+					var myCell = new SudokuCell(mycelltd,rownum,colnum);
+					sudokuCells[rownum-1][colnum-1] = myCell;
+					myCell.drawMarks();
+					
+					//mycelltd.addEventListener('click',makeSelectCellListener(myCell));
+					
+					function makeSelectCell_mouseover(prow,pcol) {
+						var f = function(e){
+							e.preventDefault();
+							if(e.buttons==1){
+							//console.log("i am:"+prow+":"+pcol);
+								SelectCell(prow,pcol,e.ctrlKey || e.buttons==1);
+							}
+						}
+						return f;
+					}
+					function makeSelectCell_mousedown(prow,pcol) {
+						var f = function(e){
+							e.preventDefault();
+							e.stopPropagation();
+							//console.log("i am:"+prow+":"+pcol);
+							SelectCell(prow,pcol,e.ctrlKey);
+						}
+						return f;
+					}
+
+					mycelltd.addEventListener('mouseover',makeSelectCell_mouseover(rownum,colnum));
+					mycelltd.addEventListener('mousedown',makeSelectCell_mousedown(rownum,colnum));
+				}
+			}
+		}
+	}
+}
+
+
+function SudokuCell(mytd,prownum,pcolnum) {
+	this.rownum = prownum;
+	this.colnum = pcolnum;
+
+	// Board elements
+	var tmp = document.createElement("div");
+	tmp.className = "cellbackground";
+	mytd.appendChild(tmp);
+	var backgroundDiv = document.createElement("div");
+	tmp.appendChild(backgroundDiv);
+	backgroundDiv.className = "color0";
+
+	var selectDiv = document.createElement("div");
+	selectDiv.className = "selectindicator-off";
+	mytd.appendChild(selectDiv);
+	
+	var highlightDiv = document.createElement("div");
+	highlightDiv.className = "cellhighlight-off";
+	mytd.appendChild(highlightDiv);
+
+	var cellValueDiv = document.createElement("div");
+	cellValueDiv.className = "cellvalue pencilmark";
+	mytd.appendChild(cellValueDiv);
+
+	var cornerPencilMarksDiv = document.createElement("div");
+	cornerPencilMarksDiv.className = "cornermarks pencilmark";
+	mytd.appendChild(cornerPencilMarksDiv);
+
+	var centerPencilMarksDiv = document.createElement("div");
+	centerPencilMarksDiv.className = "centermarks pencilmark";
+	mytd.appendChild(centerPencilMarksDiv);
+
+	var isFinalized = false;
+	var cellValue = 0;
+	var cornerMarks = [];
+	var centerMarks = [];
+	var bgColor = 0;
+
+	this.Finalize = function() {
+		cellValueDiv.className = "cellvalue finalmark";
+		isFinalized = true;
+	}
+	this.isFinalized = function() {
+		return isFinalized;
+	}
+	this.Definalize = function() {
+		cellValueDiv.className = "cellvalue pencilmark";
+		isFinalized = false;
+	}
+	this.SetFinalValue = function(pVal) {
+		var intParsedKey = parseInt(pVal);
+		if(1 <= intParsedKey && intParsedKey <= 9) {
+			cellValue=pVal;
+			isFinalized = true;
+		} else {
+			cellValue = 0;
+			this.Definalize();
+		}
+		this.drawMarks();
+	}
+	this.SetValue = function(pVal) {
+		if(!isFinalized) {
+			var intParsedKey = parseInt(pVal);
+			if(1 <= intParsedKey && intParsedKey <= 9) {
+				cellValue=pVal;
+			} else { cellValue = 0; }
+			this.drawMarks();
+		}
+	}
+	this.GetValue = function() { return cellValue; }
+	this.GetColor = function() { return bgColor; }
+	this.CornerMark = function(pVal) {
+		var intParsedKey = parseInt(pVal);
+		var valInd = cornerMarks.indexOf(pVal);
+		if(valInd>-1) {
+			cornerMarks.splice(valInd,1);
+		} else {
+			cornerMarks.push(pVal);
+		}
+		cornerMarks.sort();
+		this.drawMarks();
+	}
+	this.GetAllMarks = function() {
+		var marks = cornerMarks.concat(centerMarks);
+		return marks.filter((v,i,a)=>a.indexOf(v)==i);
+	}
+	this.CenterMark = function(pVal) {
+		var intParsedKey = parseInt(pVal);
+		var valInd = centerMarks.indexOf(pVal);
+		if(valInd>-1) {
+			centerMarks.splice(valInd,1);
+		} else {
+			centerMarks.push(pVal);
+		}
+		centerMarks.sort();
+		this.drawMarks();
+	}
+	this.ColorsMark = function(pVal) {
+		bgColor = pVal;
+		backgroundDiv.className = "color"+pVal;
+	}
+	this.clearCornerMark = function(num) {
+		var ind = cornerMarks.indexOf(num);
+		if(ind>-1) {
+			cornerMarks.splice(ind,1);
+			this.drawMarks();
+			return true;
+		} else {
+			return false;
+		}
+	}
+	this.clearCenterMark = function(num) {
+		var ind = centerMarks.indexOf(num);
+		if(ind>-1) {
+			centerMarks.splice(ind,1);
+			this.drawMarks();
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	this.clearPencilMarks = function(num) {
+		var ind = cornerMarks.indexOf(num);
+		if(ind>-1) {
+			cornerMarks.splice(ind,1);
+		}
+		ind = centerMarks.indexOf(num);
+		if(ind>-1) {
+			centerMarks.splice(ind,1);
+		}
+		this.drawMarks();
+	}
+	this.DeleteCornerMarks = function() {
+		var returnval = cornerMarks;
+		cornerMarks = [];
+		this.drawMarks();
+		return returnval;
+	}
+	this.DeleteCenterMarks = function() {
+		var returnval = centerMarks;
+		centerMarks = [];
+		this.drawMarks();
+		return returnval;
+	}
+	this.DeletePencilMarks = function(ptype) {
+		if(ptype=="corner") {
+			return this.DeleteCornerMarks();
+		} else if(ptype=="center") {
+			return this.DeleteCenterMarks();
+		} else if(ptype=="colors") {
+			var tmp = bgColor;
+			bgColor = 0;
+			this.drawMarks();
+			return tmp;
+		} else if(ptype="value") {
+			var tmp = cellValue;
+			cellValue = 0;
+			this.drawMarks();
+			return tmp;
+		}
+	}
+	this.DeleteAllMarks = function() {
+		if(!isFinalized) {
+			centerMarks = [];
+			cornerMarks = [];
+			bgColor = 0;
+			cellValue = 0;
+			this.drawMarks();
+		}
+	}
+	this.Select = function() { selectDiv.className="selectindicator-on"; }
+	this.Deselect = function() { selectDiv.className="selectindicator-off"; }
+	this.Highlight = function() { highlightDiv.className="cellhighlight-on"; }
+	this.Dehighlight = function() { highlightDiv.className="cellhighlight-off"; }
+
+	this.DumpState = function() {
+		var str = [cellValue,isFinalized,cornerMarks,centerMarks,bgColor];
+		return str;
+	}
+	this.LoadState = function(arr) {
+		cellValue = arr[0];
+		isFinalized = arr[1];
+		cornerMarks = arr[2];
+		centerMarks = arr[3];
+		bgColor = arr[4];
+		this.drawMarks();
+	}
+	this.drawMarks = function() {
+		if(cellValue > 0) {
+			cellValueDiv.innerText = cellValue;
+			if(isFinalized) {
+				cellValueDiv.className="cellvalue finalmark";
+			}
+			
+			centerPencilMarksDiv.innerText = "";
+			while (cornerPencilMarksDiv.firstChild) {
+				cornerPencilMarksDiv.removeChild(cornerPencilMarksDiv.lastChild);
+			}
+		} else {
+			cellValueDiv.innerText = "";
+		
+			if(centerMarks.length>0) {
+				centerPencilMarksDiv.innerText = centerMarks.join("");
+			} else {
+				centerPencilMarksDiv.innerText = "";
+			}
+			
+			while (cornerPencilMarksDiv.firstChild) {
+				cornerPencilMarksDiv.removeChild(cornerPencilMarksDiv.lastChild);
+			}
+			if(cornerMarks.length>0) {
+				var location_precedence = ['ul','ur','dl','dr','uc','ml','mr','dc'];
+				
+				for(var jj=0; jj<cornerMarks.length; jj++) {
+					var mymark = document.createElement("span");
+					mymark.className = "pm-"+location_precedence[jj];
+					mymark.innerText = cornerMarks[jj];
+					cornerPencilMarksDiv.appendChild(mymark);
+				}
+			}
+		}
+		backgroundDiv.className = "color"+bgColor;
+	}
+}
+}
+
+</script>
+</head>
+<body>
+
+<div id="boardcontainer">
+<table id="boardtable" class="sudokuboardtable">
+</table>
+</div>
+
+<div id="controlsContainer">
+<div id="controls">
+
+<fieldset>
+<legend>Pencil Marks</legend>
+
+<div class="row">
+<table>
+<tr><td><button id="markmode_normal">Normal</button></td>
+<td rowspan="4">
+<table id="keypad">
+<script>
+for(var jj=0; jj<3; jj++) {
+	document.write("<tr>");
+	for(var kk=0; kk<3; kk++) {
+	document.write("<td><button id=\"keypad_"+(3*jj+kk+1)+"\">"+(3*jj+kk+1)+"</button></td>");
+	}	
+	document.write("</tr>");
+}
+</script>
+<tr>
+<td colspan="3"><button id="delete_button">Delete</button></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr><td><button id="markmode_corner">Corner</button></td></tr>
+<tr><td><button id="markmode_center">Center</button></td></tr>
+<tr><td><button id="markmode_colors">Color</button></td></tr>
+</table>
+</div>
+
+<div class="row">
+<span><button id="undo">Undo</button></span>
+<span><button id="redo">Redo</button></span>
+</div>
+</fieldset>
+
+
+<fieldset>
+<legend>Gameplay</legend>
+<div class="row">
+<span><button id="check">Check</button></span>
+<span><button id="restart">Restart</button></span>
+</div>
+</fieldset>
+
+<fieldset>
+<legend>Highlighting</legend>
+<div class="row">
+<span><button id="highlightmode_none">None</button></span>
+<span><button id="highlightmode_values">Values</button></span>
+<span><button id="highlightmode_pencilmarks">Marks</button></span>
+</div>
+</fieldset>
+
+<fieldset>
+<legend>Clear Marks</legend>
+<div class="row">
+<span><button id="erase_corners">Corners</button></span>
+<span><button id="erase_centers">Centers</button></span>
+<span><button id="erase_colors">Colors</button></span>
+</div>
+<div class="row">
+<span><button id="autoclear">Auto Clear</button></span>
+</div>
+</fieldset>
+
+<fieldset>
+<legend>Puzzle Entry</legend>
+<div class="row">
+<span><button id="inputmode">Input</button></span>
+<span><button id="rapidinput">Rapid Input</button></span>
+</div>
+</fieldset>
+
+<fieldset id="inputoutput">
+<legend>Input/Output</legend>
+<div class="row">
+<span><button id="loaddump">Input State</button></span>
+<span><button id="outdump">Output State</button></span>
+</div>
+<div class="row">
+<span><button id="inputFromASCII">Input Puzzle</button></span>
+<span><button id="outputToASCII">Output Puzzle</button></span>
+</div>
+<div class="row">
+<span><textarea id="input_output"></textarea></span>
+</div>
+</fieldset>
+</div>
+</div>
+
+</body>
+<script>
+var myboard = new SudokuBoard();
+var queryString = window.location.search;
+var urlParams = new URLSearchParams(queryString);
+if(urlParams.has("p")) {
+	myboard.inputPuzzleFromASCII(urlParams.get("p"));
+}
+</script>
+</html>
